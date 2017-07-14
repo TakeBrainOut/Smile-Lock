@@ -19,29 +19,49 @@ open class PasswordInputView: UIView {
     
     let circleView = UIView()
     let button = UIButton()
-    open let label = UILabel()
-    fileprivate let fontSizeRatio: CGFloat = 46 / 40
+    open let digitLabel = UILabel()
+    open let symbolsLabel = UILabel()
+    fileprivate let fontDigitSizeRatio: CGFloat = 39 / 40
+    fileprivate let fontSymbolsSizeRatio: CGFloat = 11 / 40
     fileprivate let borderWidthRatio: CGFloat = 1 / 26
     fileprivate var touchUpFlag = false
     fileprivate(set) open var isAnimating = false
     var isVibrancyEffect = false
     
-    @IBInspectable
-    open var numberString = "2" {
+    @IBInspectable dynamic
+    open var numberString = "0" {
         didSet {
-            label.text = numberString
+            digitLabel.text = numberString
+        }
+    }
+    @IBInspectable dynamic
+    open var symbolsString = "" {
+        didSet {
+            symbolsLabel.text = symbolsString
+        }
+    }
+    
+    open var digitFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize) {
+        didSet {
+            digitLabel.font = digitFont
+        }
+    }
+    
+    open var symbolsFont: UIFont = UIFont.systemFont(ofSize: UIFont.systemFontSize) {
+        didSet {
+            symbolsLabel.font = symbolsFont
         }
     }
     
     @IBInspectable
     open var borderColor = UIColor.darkGray {
         didSet {
-            backgroundColor = borderColor
+            circleView.layer.borderColor = borderColor.cgColor
         }
     }
     
     @IBInspectable
-    open var circleBackgroundColor = UIColor.white {
+    open var circleBackgroundColor = UIColor.clear {
         didSet {
             circleView.backgroundColor = circleBackgroundColor
         }
@@ -50,12 +70,13 @@ open class PasswordInputView: UIView {
     @IBInspectable
     open var textColor = UIColor.darkGray {
         didSet {
-            label.textColor = textColor
+            digitLabel.textColor = textColor
+            symbolsLabel.textColor = textColor
         }
     }
     
     @IBInspectable
-    open var highlightBackgroundColor = UIColor.red
+    open var highlightBorderColor = UIColor.red
     
     @IBInspectable
     open var highlightTextColor = UIColor.white
@@ -63,7 +84,7 @@ open class PasswordInputView: UIView {
     //MARK: Life Cycle
     #if TARGET_INTERFACE_BUILDER
     override public func willMoveToSuperview(newSuperview: UIView?) {
-        configureSubviews()
+    configureSubviews()
     }
     #else
     override open func awakeFromNib() {
@@ -71,14 +92,14 @@ open class PasswordInputView: UIView {
         configureSubviews()
     }
     #endif
-
+    
     func touchDown() {
         //delegate callback
         delegate?.passwordInputView(self, tappedString: numberString)
         
         //now touch down, so set touch up flag --> false
         touchUpFlag = false
-        touchDownAnimation()
+        touchDownAction()
     }
     
     func touchUp() {
@@ -86,9 +107,7 @@ open class PasswordInputView: UIView {
         touchUpFlag = true
         
         //only show touch up animation when touch down animation finished
-        if !isAnimating {
-            touchUpAnimation()
-        }
+        touchUpAction()
     }
     
     open override func layoutSubviews() {
@@ -102,13 +121,19 @@ open class PasswordInputView: UIView {
         let height = bounds.height
         let center = CGPoint(x: width/2, y: height/2)
         let radius = min(width, height) / 2
-        let borderWidth = radius * borderWidthRatio
+        let borderWidth = max(2.0, radius * borderWidthRatio)
         let circleRadius = radius - borderWidth
         
-        //update label
-        label.text = numberString
-        label.font = UIFont.systemFont(ofSize: radius * fontSizeRatio, weight: UIFontWeightThin)
-        label.textColor = textColor
+        //update labels
+        digitLabel.text = numberString
+        digitLabel.font = UIFont(name: digitFont.fontName, size: radius * fontDigitSizeRatio)
+        digitLabel.textColor = textColor
+        digitLabel.adjustsFontSizeToFitWidth = true
+        
+        symbolsLabel.text = symbolsString
+        symbolsLabel.font = UIFont(name: symbolsFont.fontName, size: radius * fontSymbolsSizeRatio)
+        symbolsLabel.textColor = textColor
+        symbolsLabel.adjustsFontSizeToFitWidth = true
         
         //update circle view
         circleView.frame = CGRect(x: 0, y: 0, width: 2 * circleRadius, height: 2 * circleRadius)
@@ -117,15 +142,13 @@ open class PasswordInputView: UIView {
         circleView.backgroundColor = circleBackgroundColor
         //circle view border
         circleView.layer.borderWidth = isVibrancyEffect ? borderWidth : 0
+        circleView.layer.borderColor = borderColor.cgColor
         
         //update mask
         let path = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2.0 * CGFloat(Double.pi), clockwise: false)
         let maskLayer = CAShapeLayer()
         maskLayer.path = path.cgPath
         layer.mask = maskLayer
-        
-        //update color
-        backgroundColor = borderColor
     }
 }
 
@@ -133,10 +156,12 @@ private extension PasswordInputView {
     //MARK: Awake
     func configureSubviews() {
         addSubview(circleView)
-
-        //configure label
-        NSLayoutConstraint.addEqualConstraintsFromSubView(label, toSuperView: self)
-        label.textAlignment = .center
+        
+        //configure labels
+        NSLayoutConstraint.addEqualConstraintsFromSubView(digitLabel, toSuperView: self)
+        digitLabel.textAlignment = .center
+        
+        symbolsLabel.textAlignment = .center
         
         //configure button
         NSLayoutConstraint.addEqualConstraintsFromSubView(button, toSuperView: self)
@@ -147,26 +172,20 @@ private extension PasswordInputView {
     
     //MARK: Animation
     func touchDownAction() {
-        let originFont = label.font
-        label.font = UIFont.systemFont(ofSize: originFont!.pointSize, weight: UIFontWeightLight)
-        label.textColor = highlightTextColor
-        if !self.isVibrancyEffect {
-            backgroundColor = highlightBackgroundColor
-        }
-        circleView.backgroundColor = highlightBackgroundColor
+        digitLabel.textColor = highlightTextColor
+        symbolsLabel.textColor = highlightTextColor
+        circleView.layer.borderColor = highlightBorderColor.cgColor
     }
     
     func touchUpAction() {
-        let originFont = label.font
-        label.font = UIFont.systemFont(ofSize: originFont!.pointSize, weight: UIFontWeightThin)
-        label.textColor = textColor
-        backgroundColor = borderColor
-        circleView.backgroundColor = circleBackgroundColor
+        digitLabel.textColor = textColor
+        symbolsLabel.textColor = textColor
+        circleView.layer.borderColor = borderColor.cgColor
     }
     
     func touchDownAnimation() {
         isAnimating = true
-        tappedAnimation(animations: { 
+        tappedAnimation(animations: {
             self.touchDownAction()
         }) {
             if self.touchUpFlag {
@@ -179,7 +198,7 @@ private extension PasswordInputView {
     
     func touchUpAnimation() {
         isAnimating = true
-        tappedAnimation(animations: { 
+        tappedAnimation(animations: {
             self.touchUpAction()
         }) {
             self.isAnimating = false

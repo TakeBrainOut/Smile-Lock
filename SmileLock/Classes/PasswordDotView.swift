@@ -26,21 +26,21 @@ open class PasswordDotView: UIView {
     }
     
     @IBInspectable
-    open var strokeColor = UIColor.darkGray {
+    open var emptyColor = UIColor.darkGray {
         didSet {
             setNeedsDisplay()
         }
     }
     
     @IBInspectable
-    open var fillColor = UIColor.red {
+    open var fullColor = UIColor.green {
         didSet {
             setNeedsDisplay()
         }
     }
 
-    fileprivate var radius: CGFloat = 6
-    fileprivate let spacingRatio: CGFloat = 2
+    fileprivate var radius: CGFloat = 5
+    fileprivate let spacingRatio: CGFloat = 3.5
     fileprivate let borderWidthRatio: CGFloat = 1 / 5
     
     fileprivate(set) open var isFull = false
@@ -49,19 +49,17 @@ open class PasswordDotView: UIView {
     open override func draw(_ rect: CGRect) {
         super.draw(rect)
         isFull = (inputDotCount == totalDotCount)
-        strokeColor.setStroke()
-        fillColor.setFill()
+        
         let isOdd = (totalDotCount % 2) != 0
         let positions = getDotPositions(isOdd)
         let borderWidth = radius * borderWidthRatio
         for (index, position) in positions.enumerated() {
-            if index < inputDotCount {
-                let pathToFill = UIBezierPath(circleWithCenter: position, radius: (radius + borderWidth / 2), lineWidth: borderWidth)
-                pathToFill.fill()
-            } else {
-                let pathToStroke = UIBezierPath(circleWithCenter: position, radius: radius, lineWidth: borderWidth)
-                pathToStroke.stroke()
-            }
+            index < inputDotCount
+                ? fullColor.setFill()
+                : emptyColor.setFill()
+            
+            let pathToFill = UIBezierPath(circleWithCenter: position, radius: (radius + borderWidth / 2), lineWidth: borderWidth)
+            pathToFill.fill()
         }
     }
     
