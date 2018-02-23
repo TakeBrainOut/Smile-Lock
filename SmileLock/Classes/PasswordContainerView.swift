@@ -163,13 +163,7 @@ open class PasswordContainerView: UIView {
             digitLabel.removeFromSuperview()
             vc.view.addSubview(digitLabel)
             digitLabel.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.addConstraints(fromView: digitLabel, toView: passwordInputView, constraintInsets: UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0))
-            
-            let symbolsLabel = passwordInputView.symbolsLabel
-            symbolsLabel.removeFromSuperview()
-            vc.view.addSubview(symbolsLabel)
-            symbolsLabel.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.addConstraints(fromView: symbolsLabel, toView: passwordInputView, constraintInsets: UIEdgeInsets(top: 32, left: 0, bottom: 0, right: 0))
+            NSLayoutConstraint.addConstraints(fromView: digitLabel, toView: passwordInputView, constraintInsets: UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0))
         }
     }
     
@@ -312,3 +306,4 @@ extension PasswordContainerView: PasswordInputViewTappedProtocol {
         inputString += tappedString
     }
 }
+
