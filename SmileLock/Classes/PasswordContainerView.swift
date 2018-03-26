@@ -209,6 +209,23 @@ open class PasswordContainerView: UIView {
         inputString = ""
     }
     
+    open func touchAuthentication() {
+        guard isTouchAuthenticationAvailable else { return }
+        touchIDContext.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: touchAuthenticationReason) { (success, error) in
+            DispatchQueue.main.async {
+                if success {
+                    self.passwordDotView.inputDotCount = self.passwordDotView.totalDotCount
+                    // instantiate LAContext again for avoiding the situation that PasswordContainerView stay in memory when authenticate successfully
+                    self.touchIDContext = LAContext()
+                } else {
+                    self.wrongPassword()
+                }
+                
+                self.delegate?.touchAuthenticationComplete(self, success: success, error: error)
+            }
+        }
+    }
+    
     //MARK: IBAction
     @IBAction func deleteInputString(_ sender: AnyObject) {
         guard inputString.characters.count > 0 && !passwordDotView.isFull else {
@@ -218,17 +235,7 @@ open class PasswordContainerView: UIView {
     }
     
     @IBAction func touchAuthenticationAction(_ sender: UIButton) {
-        guard isTouchAuthenticationAvailable else { return }
-        touchIDContext.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: touchAuthenticationReason) { (success, error) in
-            DispatchQueue.main.async {
-                if success {
-                    self.passwordDotView.inputDotCount = self.passwordDotView.totalDotCount
-                    // instantiate LAContext again for avoiding the situation that PasswordContainerView stay in memory when authenticate successfully
-                    self.touchIDContext = LAContext()
-                }
-                self.delegate?.touchAuthenticationComplete(self, success: success, error: error)
-            }
-        }
+        touchAuthentication()
     }
 }
 
