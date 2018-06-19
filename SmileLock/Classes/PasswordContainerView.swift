@@ -125,7 +125,8 @@ open class PasswordContainerView: UIView {
     }
     
     open var isTouchAuthenticationAvailable: Bool {
-        return touchIDContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+        var error: NSError?
+        return touchIDContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
     }
     
     open var touchAuthenticationEnabled = false {
