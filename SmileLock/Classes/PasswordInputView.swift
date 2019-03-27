@@ -19,8 +19,8 @@ open class PasswordInputView: UIView {
     
     let circleView = UIView()
     let button = UIButton()
-    open let digitLabel = UILabel()
-    open let symbolsLabel = UILabel()
+    public let digitLabel = UILabel()
+    public let symbolsLabel = UILabel()
     fileprivate let fontDigitSizeRatio: CGFloat = 39 / 40
     fileprivate let fontSymbolsSizeRatio: CGFloat = 11 / 40
     fileprivate let borderWidthRatio: CGFloat = 1 / 26
@@ -93,7 +93,7 @@ open class PasswordInputView: UIView {
     }
     #endif
     
-    func touchDown() {
+    @objc func touchDown() {
         //delegate callback
         delegate?.passwordInputView(self, tappedString: numberString)
         
@@ -102,7 +102,7 @@ open class PasswordInputView: UIView {
         touchDownAction()
     }
     
-    func touchUp() {
+    @objc func touchUp() {
         //now touch up, so set touch up flag --> true
         touchUpFlag = true
         
